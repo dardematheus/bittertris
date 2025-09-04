@@ -3,8 +3,8 @@
 #include <ncurses.h>
 #include <time.h>
 
-#define X_AXIS 13
-#define Y_AXIS 22
+#define X_AXIS 4
+#define Y_AXIS 6
 
 typedef enum Tetromino{
     I, O, T, S, Z, J, L, COUNT
@@ -39,14 +39,15 @@ typedef struct Game {
 }Game;
 
 typedef struct Piece {
-    int coordX, coordY, rot, type;
+    unsigned int coordX, coordY;
+    uint16_t type;
+    uint16_t rot;
 }Piece;
 
 Game initGame(void);
 void drawBoard(Game game);
-void genPiece(Game game);
 
-static uint8_t board[X_AXIS][Y_AXIS]; // 0 eh vazio, 1 nao
+static uint16_t board[X_AXIS][Y_AXIS]; // 0 eh vazio, 1 nao
 
 int main(void)
 {
@@ -63,7 +64,6 @@ int main(void)
         refresh();
         key = getch();
         if(game.state == 0xF0){
-            genPiece(game);
             game.state = 0xFF;
         }
     }
@@ -72,24 +72,25 @@ int main(void)
     return 0;
 }
 
+
+//reescrever tambem
 Game initGame(void)
-{
+{  
     int x, y;
-    
     for(y = 0; y < Y_AXIS; ++y){
         for(x = 0; x < X_AXIS; ++x){
-            if(y == 0 || y == Y_AXIS - 1) board[x][y] = 1;
-            else if(x == 0 || x == X_AXIS - 1) board[x][y] = 1;
-            else board[x][y] = 0; 
+            board[x][y] = board[x][y] | 0x0000;
         }
     }
+
     Game game;
     game.points = 0;
-    game.state = 0x00;
+    game.state = 0xFF;
     game.gravity = 0;
     return game;
 }
 
+//abc
 void drawBoard(Game game)
 {
     if(game.state == 0x00){
@@ -97,26 +98,23 @@ void drawBoard(Game game)
         return;
     }
 
-    for(int y = 0; y < Y_AXIS; ++y){
-        for(int x = 0; x < X_AXIS; ++x){
-            if(board[x][y] == 1) mvaddch(y, x, '#');
-            else if(board[x][y] == 0) mvaddch(y, x, ' ');
+    int x, y, xcount;
+
+    for(int i = 0; i < Y_AXIS; i++){
+        for(int j = 0; j < X_AXIS; j++){
+            x = 4 * j;
+            y = 4 * i;
+            for(int bit = 15; bit >= 0; bit--){
+                if(xcount != 0 && ((xcount % 4) == 0)){
+                    y++;
+                    x = 4 * j;
+                }
+                if(board[j][i] & (1 << bit)) mvaddch(y, x, '1');
+                else mvaddch(y, x, '0');
+                xcount++;
+                x++;
+            }
         }
     }
-    mvprintw(0, X_AXIS + 1, "Points: %d", game.points);
-}
-
-void genPiece(Game game)
-{
-    if(game.state == 0xF0 || 0x00){
-        return;
-    }
-
-    Piece piece;
-    piece.coordX = 5;
-    piece.coordY = 2;
-    piece.type = rand() % COUNT;
-    piece.rot = rand() % 4;
-
-    
+    mvprintw(1, X_AXIS + 15, "Points: %d", game.points);
 }
