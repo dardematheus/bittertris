@@ -3,7 +3,7 @@
 #include <ncurses.h>
 #include <time.h>
 
-#define X_AXIS 4
+#define X_AXIS 3
 #define Y_AXIS 6
 
 typedef enum Tetromino{
@@ -72,16 +72,25 @@ int main(void)
     return 0;
 }
 
-
-//reescrever tambem
 Game initGame(void)
 {  
     int x, y;
-    for(y = 0; y < Y_AXIS; ++y){
-        for(x = 0; x < X_AXIS; ++x){
-            board[x][y] = board[x][y] | 0x0000;
+
+    for(y = 0; y < Y_AXIS; y++){
+        for(x = 0; x < X_AXIS; x++){
+            if(x == 0){
+                if(y < 5) board[0][y] = board[0][y] | 0x8888;
+                else board[0][y] = board[0][y] | 0x8000;
+            }
+            if(x == 2){
+                if(y < 5) board[2][y] = board[2][y] | 0x1111;
+                else board[2][y] = board[2][y] | 0x1000;
+            }
+            if(y == 5) board[x][5] = board[x][5] | 0xF000;
         }
     }
+
+    board[1][1] = type[1][3];
 
     Game game;
     game.points = 0;
@@ -90,7 +99,6 @@ Game initGame(void)
     return game;
 }
 
-//abc
 void drawBoard(Game game)
 {
     if(game.state == 0x00){
@@ -109,12 +117,12 @@ void drawBoard(Game game)
                     y++;
                     x = 4 * j;
                 }
-                if(board[j][i] & (1 << bit)) mvaddch(y, x, '1');
-                else mvaddch(y, x, '0');
+                if(board[j][i] & (1 << bit)) mvaddch(y, x, '#');
+                else mvaddch(y, x, ' ');
                 xcount++;
                 x++;
             }
         }
     }
-    mvprintw(1, X_AXIS + 15, "Points: %d", game.points);
+    mvprintw(1, X_AXIS + 10, "Points: %d", game.points);
 }
